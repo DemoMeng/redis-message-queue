@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+<div style="margin-left: 30px">
+
+
+    <input class="layui-input" name="" id="id" type="hidden">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">登录账号 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="loginName" placeholder="请输入登录账号" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">姓名 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="name" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">密码<span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="password" class="layui-input" name="" id="passWord" autocomplete="off" placeholder="请输入密码">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">角色id<span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="roleId" autocomplete="off" placeholder="请选择角色">
+        </div>
+    </div>
+
+    <div class="layui-inline">
+        <label class="layui-form-label">搜索选择框</label>
+        <div class="layui-input-inline">
+            <select name="modules" lay-verify="required" lay-search="">
+                <option value="">直接选择或搜索选择</option>
+                <option value="1">layer</option>
+                <option value="2">form</option>
+                <option value="3">layim</option>
+            </select>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/utils.js}"></script>
+<script th:src="@{/js/token_filter.js}"></script>
+<script>
+    let data = "";
+    function init(id){
+        ct();
+        if(id != null){
+            layui.use(['form', 'layedit', 'laydate'], function() {
+                let form = layui.form
+                    ,layer = layui.layer
+                    ,layedit = layui.layedit
+                    ,laydate = layui.laydate;
+                let url = "http://localhost:3040/system/user/editEcho?userId="+id;
+                let token = layui.data("tokens").token;
+                let resultData;
+                layui.$.ajax({
+                    url:url,
+                    data:null,
+                    type:"POST",
+                    async:false,
+                    headers:{'Accept':'application/json','token':token},
+                    dataType:"JSON",
+                    contentType:"application/json;charset=UTF-8",
+                    success:function(data){
+                        let code = data.code;
+                        if(code == 200){
+                            layui.$("#id").val(data.data.id);
+                            layui.$("#name").val(data.data.name);
+                            layui.$("#roleId").val(data.data.roleId);
+                        }else{
+                            layer.msg(data.msg);
+                        }
+                    },
+                    error:function(data){
+                        layui.$.alert('发生未知错误',data.msg);
+                    }
+                });
+
+            });
+
+        }
+    }
+</script>
+
+</body>
+</html>

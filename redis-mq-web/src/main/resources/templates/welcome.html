@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>开始使用layui</title>
+    <link th:href="@{/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">layui 后台布局</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="">控制台</a></li>
+            <li class="layui-nav-item"><a href="">商品管理</a></li>
+            <li class="layui-nav-item"><a href="">用户</a></li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">其它系统</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">邮件管理</a></dd>
+                    <dd><a href="">消息管理</a></dd>
+                    <dd><a href="">授权管理</a></dd>
+                </dl>
+            </li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+                    贤心
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">基本资料</a></dd>
+                    <dd><a href="">安全设置</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="">退了</a></li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">所有商品</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" tab_id="111" data-url="/index/system/log">文章列表</a></dd>
+                        <dd><a href="javascript:;" tab_id="222" data-url="/index/system/user">发送信息</a></dd>
+                        <dd><a href="javascript:;" tab_id="333" data-url="/index/system/menu">权限分配</a></dd>
+                        <dd><a href="javascript:;" tab_id="444" data-url="/index">超链接</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;">解决方案</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;">列表一</a></dd>
+                        <dd><a href="javascript:;">列表二</a></dd>
+                        <dd><a href="">超链接</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item"><a href="">云市场</a></li>
+                <li class="layui-nav-item"><a href="">发布商品</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">
+            <div class="layui-tab" lay-filter="mytab" lay-allowClose="true">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">
+                        <i class="layui-icon">
+                            &#xe620;
+                            <cite>控制面板</cite>
+                        </i>
+                    </li>
+                </ul>
+                <div class="layui-tab-content" style="min-height: 800px;border: none">
+                    <div class="layui-tab-item layui-show">
+                        <iframe src="/home/"></iframe>
+                    </div>
+                    <!--<div class="layui-tab-item layui-show">
+                        <iframe src="http://www.hao123.com"></iframe>
+                    </div>
+                    <div class="layui-tab-item">
+                        <iframe src="http://www.taobao.com"></iframe>
+                    </div>
+                    <div class="layui-tab-item">3</div>
+                    <div class="layui-tab-item">4</div>
+                    <div class="layui-tab-item">5</div>-->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        © layui.com - 底部固定区域
+    </div>
+</div>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+
+    layui.use('element', function() {
+        let $ = layui.$,element = layui.element;
+
+        layui.$(document).on('click', 'a', function () {
+            if (!$(this)[0].hasAttribute("tab_id") || $(this).attr("tab_id") === '') {
+                return;
+            }
+            var layid = $(this).attr("tab_id");
+            var text = $(this).text();
+            var dataurl = $(this).attr("data-url");
+
+
+            console.log(dataurl);
+            alert(layid);
+            var tabs = $(".layui-tab-title").children();
+            var msg = true;
+            $.each(tabs, function (i, item) {
+                var tabid = $(item).attr("lay-id");
+                alert('遍历' + tabid);
+                if (tabid === layid) {
+                    alert('相等了');
+                    msg = false;
+                    return false;
+                }
+
+            });
+            alert('msg' + msg);
+            if (msg) {
+
+                element.tabAdd('mytab', {
+                    title: text,
+                    content: "<iframe frameborder='0' src='" + dataurl + "'></iframe>",
+                    id: layid
+                });
+            }
+            resize();
+            element.tabChange('mytab', layid);
+
+
+        });
+
+
+        $(window).on('resize', function () {
+            var $content = $(".layui-tab-content");
+            $content.height($(this).height() - 200);
+            $content.find('iframe').each(function () {
+                $(this).height($content.height());
+                $(this).width("100%")
+
+            });
+
+        });
+        $(window).on('load', function () {
+            var $content = $(".layui-tab-content");
+            $content.height($(this).height() - 200);
+            $content.find('iframe').each(function () {
+                $(this).height($content.height());
+                $(this).width("100%")
+
+            });
+
+
+        })
+
+
+        function resize() {
+            var $content = $(".layui-tab-content");
+            $content.height($(this).height() - 200);
+            $content.find('iframe').each(function () {
+                $(this).height($content.height());
+                $(this).width("100%")
+            })
+        }
+
+    });
+
+
+
+
+</script>
+</body>
+</html>

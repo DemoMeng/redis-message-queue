@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>蒙大拿-后台管理</title>
+    <link th:href="@{/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">Master</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="#">控制台</a></li>
+            <li class="layui-nav-item"><a href="#">商品管理</a></li>
+            <li class="layui-nav-item"><a href="#">用户</a></li>
+            <li class="layui-nav-item"><a href="#">其它系统</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">邮件管理</a></dd>
+                    <dd><a href="">消息管理</a></dd>
+                    <dd><a href="">授权管理</a></dd>
+                </dl></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item"><a id="user-info" href="javascript:;"> aaa 贤心 </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">基本资料</a></dd>
+                    <dd><a href="">安全设置</a></dd>
+                </dl></li>
+            <li class="layui-nav-item"><a href="#" onclick="loginOut()">退了</a></li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;" id="saasMenu"></a>
+                    <dl class="layui-nav-child" id="saasMenus"></dl>
+                </li>
+            </ul>
+
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;" id="openMenu"></a>
+                    <dl class="layui-nav-child" id="openMenus"></dl>
+                </li>
+            </ul>
+
+            <ul class="layui-nav layui-nav-tree" lay-filter="test" >
+                <li class="layui-nav-item layui-nav-itemed" >
+                    <a class="" id="settingMenu" href="javascript:;"></a>
+                    <dl class="layui-nav-child" id="settingMenus">
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">
+            <div class="layui-tab" lay-filter="mytab" lay-allowClose="true">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">
+                        <i class="layui-icon">
+                            &#xe620;
+                            <cite>控制面板</cite>
+                        </i>
+                    </li>
+                </ul>
+                <div class="layui-tab-content" style="min-height: 800px;border: none">
+                    <div class="layui-tab-item layui-show">
+                        <iframe frameborder="0" src="/index/home/"></iframe>
+                    </div>
+                    <!--<div class="layui-tab-item layui-show">
+                        <iframe src="http://www.hao123.com"></iframe>
+                    </div>
+                    <div class="layui-tab-item">
+                        <iframe src="http://www.taobao.com"></iframe>
+                    </div>
+                    <div class="layui-tab-item">3</div>
+                    <div class="layui-tab-item">4</div>
+                    <div class="layui-tab-item">5</div>-->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        © layui.com - 底部固定区域
+    </div>
+
+
+</div>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/token_filter.js}"></script>
+<script th:src="@{/js/utils.js}"></script>
+<script>
+    layui.use(['element','layer'], function() {
+        let $ = layui.$,layer = layui.layer;
+        $(function(){
+            ct();
+            let token = layui.data("tokens").token;
+            /**初始化用户资料**/
+            layui.$.ajax({
+                url:"http://localhost:3040/system/user/current",
+                data:null,
+                type:"GET",
+                headers:{'Accept':'application/json','token':token},
+                dataType:"JSON",
+                contentType:"application/json;charset=UTF-8",
+                success:function(data){
+                    let code = data.code;
+                    if(code == 200){
+                        $("#user-info").html(data.data.loginName);
+                    }else{
+                        layer.msg(data.msg);
+                    }
+                },
+                error:function(data){
+                    layui.$.alert('发生未知错误',data.msg);
+                }
+            });
+            /**初始化菜单**/
+            layui.$.ajax({
+                url:"http://localhost:3040/system/init",
+                data:null,
+                type:"POST",
+                headers:{'Accept':'application/json','token':token},
+                dataType:"JSON",
+                contentType:"application/json;charset=UTF-8",
+                success:function(data){
+                    let code = data.code;
+                    if(code == 200){
+                        init(data.data);
+                    }else if(code == 434){
+                        layer.msg(data.msg, function(){
+                            /***移除token*/
+                            layui.data('tokens', {
+                                key: 'token'
+                                ,remove: true
+                            });
+                            location.href = "http://localhost:3040/index/login";
+                        });
+                    }else{
+                        layer.msg(data.msg);
+                    }
+                },
+                error:function(data){
+                    layui.$.alert('发生未知错误',data.msg);
+                }
+            });
+        });
+
+        let element = layui.element
+
+        layui.$(document).on('click', 'a', function () {
+            if (!$(this)[0].hasAttribute("tab-id") || $(this).attr("tab-id") === '') {
+                return;
+            }
+            let layId = $(this).attr("tab-id");
+            let text = $(this).text();
+            let dataUrl = $(this).attr("data-url");
+            let tabs = $(".layui-tab-title").children();
+            let msg = true;
+            $.each(tabs, function (i, item) {
+                let tabIds = $(item).attr("lay-id");
+                if (tabIds === layId) {
+                    msg = false;
+                    return false;
+                }
+            });
+
+            if (msg) {
+                element.tabAdd('mytab', {
+                    title: text,
+                    content: "<iframe frameborder='0' src='" + dataUrl + "'></iframe>",
+                    id: layId
+                });
+            }
+            resize();
+            element.tabChange('mytab', layId);
+        });
+
+        $(window).on('resize', function () {
+            let $content = $(".layui-tab-content");
+            $content.height($(this).height() - 200);
+            $content.find('iframe').each(function () {
+                $(this).height($content.height());
+                $(this).width("100%")
+            });
+        });
+        $(window).on('load', function () {
+            let $content = $(".layui-tab-content");
+            $content.height($(this).height() - 200);
+            $content.find('iframe').each(function () {
+                $(this).height($content.height());
+                $(this).width("100%")
+            });
+        })
+
+        function resize() {
+            let $content = $(".layui-tab-content");
+            $content.height($(this).height() - 200);
+            $content.find('iframe').each(function () {
+                $(this).height($content.height());
+                $(this).width("100%")
+            })
+        }
+
+
+        function init(data){
+            let setting = data.setting;
+            let settingSons = setting.sons;
+            /**叠加系统菜单**/
+            let settingContent ="";
+            for(let i=0;i<settingSons.length;i++){
+                console.log(settingSons[i]);
+                settingContent += "<dd><a tab-id='"+settingSons[i].id+"' data-url='"+settingSons[i].remarks+"' href='#'>"+settingSons[i].name+"</a></dd>"
+            }
+            layui.$('#settingMenus').html(settingContent);
+            layui.$("#settingMenu").html(setting.name);
+
+            /**叠加其他菜单**/
+            let saas = data.other[0];
+            let saasSons = saas.sons;
+            let saasContent ="";
+            for(let i=0;i<saasSons.length;i++){
+                saasContent += "<dd><a tab-id='"+saasSons[i].id+"' data-url='"+saasSons[i].remarks+"' href='#'>"+saasSons[i].name+"</a></dd>"
+            }
+            layui.$('#saasMenus').html(saasContent);
+            layui.$("#saasMenu").html(saas.name);
+
+            /**open**/
+            let open = data.other[1];
+            let openSons = open.sons;
+            let openContent ="";
+            for(let i=0;i<openSons.length;i++){
+                openContent += "<dd><a tab-id='"+openSons[i].id+"' data-url='"+openSons[i].remarks+"' href='#'>"+openSons[i].name+"</a></dd>"
+            }
+            layui.$('#openMenus').html(openContent);
+            layui.$("#openMenu").html(open.name)
+
+        }
+    });
+
+    function loginOut(){
+        let token = layui.data("tokens").token;
+        /**初始化用户资料**/
+        layui.$.ajax({
+            url:"http://localhost:3040/system/out",
+            data:null,
+            type:"GET",
+            headers:{'Accept':'application/json','token':token},
+            dataType:"JSON",
+            contentType:"application/json;charset=UTF-8",
+            success:function(data){
+                location.href = "http://localhost:3040/index/login";
+            },
+            error:function(data){
+                layui.$.alert('发生未知错误',data.msg);
+            }
+        })
+
+    }
+</script>
+</body>
+</html>

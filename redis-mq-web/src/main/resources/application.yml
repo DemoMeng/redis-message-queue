@@ -1,0 +1,26 @@
+server:
+  port: 4000
+spring:
+  resources:
+    static-locations: classpath:static/,file:static/
+  thymeleaf:
+    cache: true
+
+#  thymeleaf:
+#    cache: true
+#    prefix: classpath:/web/
+#    suffix: .html
+#    mode: HTML5
+#    encoding: UTF-8
+#    servlet:
+#      content-type: text/html
+#  resources:
+#    chain:
+#      strategy:
+#        content:
+#          enabled: true
+#          paths: /**
+#设置静态资源路径，多个以逗号分隔
+
+logging:
+  config: classpath:logback.xml

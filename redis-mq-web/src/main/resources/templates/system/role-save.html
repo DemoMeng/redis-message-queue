@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+<div style="margin-left: 30px">
+
+
+    <input class="layui-input" name="" id="id" type="hidden">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="name" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">编号 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="no" autocomplete="off" placeholder="请输入编号">
+        </div>
+    </div>
+
+    <!--<div class="layui-btn-container">
+        <button type="button" class="layui-btn layui-btn-sm" lay-demo="getChecked">获取选中节点数据</button>
+        <button type="button" class="layui-btn layui-btn-sm" lay-demo="setChecked">勾选指定节点</button>
+        <button type="button" class="layui-btn layui-btn-sm" lay-demo="reload">重载实例</button>
+    </div>-->
+    <div class="layui-form-item">
+        <label class="layui-form-label">角色权限 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <div id="test12" class="demo-tree-more"></div>
+        </div>
+    </div>
+
+</div>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/utils.js}"></script>
+<script th:src="@{/js/token_filter.js}"></script>
+<script>
+
+    let data = "";
+
+    function init(id){
+        let url = "http://localhost:3040/system/role/rm/echo?id="+id;
+        if(id == undefined || id == null || id == ""){
+            url = "http://localhost:3040/system/role/rm/echo";
+        }
+
+        layui.use(['tree', 'util'], function(){
+            ct()
+            let tree = layui.tree
+                ,layer = layui.layer
+                ,util = layui.util;
+            let resultData;
+            let token = layui.data("tokens").token;
+            /**初始化用户资料**/
+            layui.$.ajax({
+                url:url,
+                data:null,
+                type:"GET",
+                async:false,
+                headers:{'Accept':'application/json','token':token},
+                dataType:"JSON",
+                contentType:"application/json;charset=UTF-8",
+                success:function(data){
+                    let code = data.code;
+                    if(code == 200){
+                        layui.$("#id").val(data.data.id);
+                        layui.$("#name").val(data.data.name);
+                        layui.$("#no").val(data.data.no);
+                        resultData = data.data.menu;
+                        console.log(resultData);
+                    }else{
+                        layer.msg(data.msg);
+                    }
+                },
+                error:function(data){
+                    layui.$.alert('发生未知错误',data.msg);
+                }
+            });
+
+            //基本演示
+            tree.render({
+                elem: '#test12'
+                ,data: resultData
+                ,showCheckbox: true  //是否显示复选框
+                ,id: 'demoId1'
+                ,isJump: true //是否允许点击节点时弹出新窗口跳转
+                ,click: function(obj){
+                    let data = obj.data;  //获取当前点击的节点数据
+                    layer.msg('状态：'+ obj.state + '<br>节点数据：' + JSON.stringify(data));
+                }
+            });
+
+            //按钮事件
+            util.event('lay-demo', {
+                getChecked: function(othis){
+                    let checkedData = tree.getChecked('demoId1'); //获取选中节点的数据
+                    let ids = "";
+                    for(let i =0;i<checkedData.length;i++){
+                            ids += checkedData[i].id+",";
+                            for(let j = 0;j<checkedData[i].children.length;j++){
+                                ids +=checkedData[i].children[j].id+",";
+                                for(let h=0;h<checkedData[i].children[j].children.length;h++){
+                                    ids +=checkedData[i].children[j].children[h].id+","
+                                }
+                            }
+                    }
+                    data = ids;
+                    console.log(data);
+
+                    layer.alert(JSON.stringify(checkedData), {shade:0});
+                    console.log(checkedData);
+                }
+                ,setChecked: function(){
+                    tree.setChecked('demoId1', [12, 16]); //勾选指定节点
+                }
+                ,reload: function(){
+                    //重载实例
+                    tree.reload('demoId1', {
+                    });
+                }
+            });
+        });
+
+    }
+
+    function sendDataToParent(){
+            return data;
+    }
+
+    function getCheckedForParent(){
+        let ids = "";
+        layui.use(['tree', 'util'], function(){
+            let tree = layui.tree,layer = layui.layer
+            let checkedData = tree.getChecked('demoId1'); //获取选中节点的数据
+            for(let i =0;i<checkedData.length;i++){
+                ids += checkedData[i].id+",";
+                for(let j = 0;j<checkedData[i].children.length;j++){
+                    ids +=checkedData[i].children[j].id+",";
+                    for(let h=0;h<checkedData[i].children[j].children.length;h++){
+                        ids +=checkedData[i].children[j].children[h].id+","
+                    }
+                }
+            }
+        });
+        return ids;
+    }
+</script>
+
+</body>
+</html>

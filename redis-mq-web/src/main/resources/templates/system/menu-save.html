@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>菜单保存</title>
+    <link th:href="@{/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+<div class="layui-form" style="margin-left: 30px;margin-top: 50px">
+    <input class="layui-input" name="" id="id" type="hidden">
+    <div class="layui-form-item">
+        <div class="layui-form-item">
+            <label class="layui-form-label">上级ID <span style="color: red">*</span></label>
+            <div class="layui-input-inline">
+                <select id="parentId">
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="name" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="sort" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">连接地址 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="url" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">方式 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="type" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">路由 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="" id="route" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">归属 <span style="color: red">*</span></label>
+        <div class="layui-input-inline">
+            <input type="text" readonly="readonly" class="layui-input" name="" id="belongTo" placeholder="请输入名称" autocomplete="off">
+        </div>
+    </div>
+
+</div>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/utils.js}"></script>
+<script th:src="@{/js/token_filter.js}"></script>
+<script>
+
+    function init(id,belongType) {
+        layui.use(['tree', 'util'], function () {
+            ct()
+            let layer = layui.layer;
+            let token = layui.data("tokens").token;
+            if (id != null) {
+                layui.$.ajax({
+                    url: "http://localhost:3040/system/menu/editEcho?id="+id,
+                    data: null,
+                    type: "GET",
+                    async: true,
+                    headers: {'Accept': 'application/json', 'token': token},
+                    dataType: "JSON",
+                    contentType: "application/json;charset=UTF-8",
+                    success: function (data) {
+                        let code = data.code;
+                        if (code == 200) {
+                            console.log(data);
+                            layui.$("#id").val(data.data.id);
+                            layui.$("#name").val(data.data.name);
+                            layui.$("#parentId").val(data.data.parentId);
+                            layui.$("#sort").val(data.data.sort);
+                            layui.$("#url").val(data.data.url);
+                            layui.$("#type").val(data.data.target);
+                            layui.$("#route").val(data.data.route);
+                            layui.$("#belongTo").val(data.data.belongType);
+                        } else {
+                            layer.msg(data.msg);
+                        }
+                    },
+                    error: function (data) {
+                        layui.$.alert('发生未知错误', data.msg);
+                    }
+                });
+
+            }
+            if(belongType != null){
+                layui.$("#belongTo").val(belongType);
+                if(belongType == 1){
+                    let option = "<option value='0' selected>默认顶级</option>";
+                    layui.$("#parentId").append(option);
+                }
+                if(belongType != 1){
+                    let type = belongType -1;
+                    layui.$.ajax({
+                        url: "http://localhost:3040/system/menu/parentMenu?type="+type,
+                        data: null,
+                        type: "GET",
+                        async: true,
+                        headers: {'Accept': 'application/json', 'token': token},
+                        dataType: "JSON",
+                        contentType: "application/json;charset=UTF-8",
+                        success: function (data) {
+                            let code = data.code;
+                            if (code == 200) {
+                                //layui.$("#parentId")
+                                console.log(data);
+                                if(data.data.length == 0){
+                                    layer.msg("父级菜单为空，请先新建父级菜单！！");
+                                    return false;
+                                }
+                                for(let i=0;i<data.data.length;i++){
+                                    layui.$("#parentId").add(new Option(data.data[i].name,data.data[i].id));
+                                }
+                            } else {
+                                layer.msg(data.msg);
+                            }
+                        },
+                        error: function (data) {
+                            layui.$.alert('发生未知错误', data.msg);
+                        }
+                    });
+
+                }
+            }
+
+
+
+
+        });
+    }
+
+</script>
+
+</body>
+</html>

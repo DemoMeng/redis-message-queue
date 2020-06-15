@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">FIRST</li>
+        <li>SECOND</li>
+        <li>THIRD</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-btn-container">
+                <button type="button" class="layui-btn layui-btn-sm" id="add-menu-1">新增</button>
+            </div>
+            <div class="demoTableFirst">
+                搜索关键字：
+                <div class="layui-inline">
+                    <input class="layui-input" name="keyword1" id="demoReload1" autocomplete="off">
+                </div>
+                <button id="btn-reload-1"class="layui-btn" data-type="reload">搜索</button>
+            </div>
+            <table id="first-table" lay-filter="test1"></table>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-btn-container">
+                <button type="button" class="layui-btn layui-btn-sm" id="add-menu-2">新增</button>
+            </div>
+            <div class="demoTableSecond">
+                搜索关键字：
+                <div class="layui-inline">
+                    <input class="layui-input" name="keyword2" id="demoReload2" autocomplete="off">
+                </div>
+                <button id="btn-reload-2"class="layui-btn" data-type="reload">搜索</button>
+            </div>
+            <table id="second-table" lay-filter="test2"></table>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-btn-container">
+                <button type="button" class="layui-btn layui-btn-sm" id="add-menu-3">新增</button>
+            </div>
+            <div class="demoTableThird">
+                搜索关键字：
+                <div class="layui-inline">
+                    <input class="layui-input" name="keyword3" id="demoReload3" autocomplete="off">
+                </div>
+                <button id="btn-reload-3"class="layui-btn" data-type="reload">搜索</button>
+            </div>
+            <table id="third-table" lay-filter="test3"></table>
+        </div>
+    </div>
+</div>
+
+
+
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/utils.js}"></script>
+<script th:src="@{/js/token_filter.js}"></script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+    layui.use(['table', 'layer','element'], function(){
+        let $ = layui.jquery,element = layui.element;
+        let table = layui.table;
+        $(function(){
+            ct();
+            let token = layui.data("tokens").token;
+
+            /**first**/
+            table.render({
+                elem: '#first-table'
+                ,method:"POST"
+                ,toolbar: true
+                ,url: 'http://localhost:3040/system/menu/list' //数据接口
+                ,page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                    layout: ['limit','limits', 'count', 'prev','page','next', 'first','last','skip'] //自定义分页布局
+                    ,limit:10
+                    ,limits:[5,10]
+                    ,groups: 5 //只显示 5 个连续页码
+                }
+                ,where:{
+                    type:1
+                }
+                ,request:{
+                    pageName:"pageCurrent",
+                    limitName:"pageSize",
+                }
+                ,contentType:"application/json;charset=UTF-8"
+                ,response: {
+                    statusCode: 200 //重新规定成功的状态码为 200，table 组件默认为 0
+                }
+                ,headers: {token:token}
+                ,cols: [
+                    [
+                        {field: 'id', title: 'ID', sort: true, fixed: 'left',align: 'center'}
+                        ,{field: 'parentId', title: '上级id',align: 'center'}
+                        ,{field: 'name', title: '名称',  sort: true,align: 'center'}
+                        ,{field: 'sort', title: '排序',align: 'center'}
+                        ,{field: 'href', title: '连接地址',align: 'center'}
+                        ,{field: 'target', title: '方式', sort: true,align: 'center'}
+                        ,{field: 'route', title: '路由', sort: true,align: 'center'}
+                        ,{field: 'createDate', title: '创建时间', sort: true,align: 'center'}
+                        ,{field: 'belongType', title: '归属', sort: true,align: 'center'}
+                        ,{field: 'parentName', title: '上级菜单', sort: true,align: 'center'}
+                        ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+                    ]
+                ]
+                ,id: 'reload1'
+                ,parseData:function(data){
+                    return {
+                        "code": data.code, //解析接口状态
+                        "msg": data.msg, //解析提示文本
+                        "count": data.data.total, //解析数据长度
+                        "data": data.data.records //解析数据列表
+                    };
+                }
+            });
+
+
+            let active = {
+                reload: function(){
+                    let demoReload = $('#demoReload1');
+                    //执行重载
+                    table.reload('reload1', {
+                        page: {
+                            curr: 1 //重新从第 1 页开始
+                        }
+                        ,where: {
+
+                            keyword: demoReload.val()
+
+                        }
+                    }, 'data');
+                }
+            };
+
+            $('#btn-reload-1').on('click', function(){
+                let type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+            //头工具栏事件
+            table.on('toolbar(test1)', function(obj){
+                console.log(obj);
+                var checkStatus = table.checkStatus(obj.config.id);
+                switch(obj.event){
+                    case 'getCheckData':
+                        var data = checkStatus.data;
+                        layer.alert(JSON.stringify(data));
+                        break;
+                    case 'getCheckLength':
+                        var data = checkStatus.data;
+                        layer.msg('选中了：'+ data.length + ' 个');
+                        break;
+                    case 'isAll':
+                        layer.msg(checkStatus.isAll ? '全选': '未全选');
+                        break;
+
+                    //自定义头工具栏右侧图标 - 提示
+                    case 'LAYTABLE_TIPS':
+                        layer.alert('这是工具栏右侧自定义的一个图标按钮');
+                        break;
+                };
+            });
+
+            //监听行工具事件
+            table.on('tool(test1)', function(obj){
+                var data = obj.data;
+                console.log(obj)
+                if(obj.event === 'del'){
+                    layer.confirm('真的删除行么', function(index){
+                        layui.$.ajax({
+                            url:"http://localhost:3040/system/menu/remove?id="+obj.data.id,
+                            data:null,
+                            type:"GET",
+                            async:false,
+                            headers:{'Accept':'application/json','token':token},
+                            dataType:"JSON",
+                            contentType:"application/json;charset=UTF-8",
+                            success:function(data){
+                                let code = data.code;
+                                if(code == 200){
+                                    //执行重载
+                                    //table.reload('roleTable', {});
+                                    layer.msg(data.msg,function(){
+                                        obj.del();
+                                        layer.close(index);
+                                    });
+                                }else{
+                                    layer.msg(data.msg);
+                                }
+                            },
+                            error:function(data){
+                                layui.msg(data.msg);
+                            }
+                        });
+                    });
+                } else if(obj.event === 'edit'){
+                    layer.open({
+                        type: 2, //Layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）,
+                        title: 'title here',   //标题
+                        area: ['650px', '600px'],   //宽高
+                        shade: 0.4,   //遮罩透明度
+                        content:"http://localhost:3040/index/system/menuSave",//支持获取DOM元素
+                        btn: ['确定', '取消'], //按钮组
+                        scrollbar: false ,//屏蔽浏览器滚动条
+                        success:function(layero,index){
+                            // 获取子页面的iframe
+                            let iframe = window['layui-layer-iframe' + index];
+                            // 向子页面的全局函数child传参
+                            iframe.init(obj.data.id,1);
+
+                        },
+                        yes: function(index,layero){//layer.msg('yes');    //点击确定回调
+                            let iframeWin = window[layero.find('iframe')[0]['name']];//得到iframe页的窗口对象，执行iframe页的方法：
+                            let sId = iframeWin.document.getElementById("id").value;
+                            let sName = iframeWin.document.getElementById("name").value;
+                            let sSort = iframeWin.document.getElementById("sort").value;
+                            let sParentId = iframeWin.document.getElementById("parentId").value;
+                            let sUrl = iframeWin.document.getElementById("url").value;
+                            let sType = iframeWin.document.getElementById("type").value;
+                            let sRoute = iframeWin.document.getElementById("route").value;
+                            let sBelongType = iframeWin.document.getElementById("belongTo").value;
+
+
+                            let data = {
+                                "id":sId,
+                                "name":sName,
+                                "parentId":sParentId,
+                                "href":sUrl,
+                                "isShow": 0,
+                                "route": sRoute,
+                                "sort": sSort,
+                                "target": sType,
+                                "belongType":sBelongType
+                            };
+                            layui.$.ajax({
+                                url:"http://localhost:3040/system/menu/save",
+                                data:JSON.stringify(data),
+                                type:"POST",
+                                async:false,
+                                headers:{'Accept':'application/json','token':token},
+                                dataType:"JSON",
+                                contentType:"application/json;charset=UTF-8",
+                                success:function(data){
+                                    let code = data.code;
+                                    if(code == 200){
+                                        //执行重载
+                                        //table.reload('roleTable', {});
+                                        table.reload("reload1",function(){
+                                            page: {
+                                                curr:1 //重新从第 1 页开始
+                                            }
+                                        });
+                                        layer.close(index);
+                                    }else{
+                                        layer.msg(data.msg);
+                                    }
+                                },
+                                error:function(data){
+                                    layui.$.alert('发生未知错误',data.msg);
+                                }
+                            });
+                        }, btn2: function(){//layer.alert('aaa',{title:'msg title'});  ////点击取消回调
+                            //layer.msg('bbb');//layer.closeAll();
+                        }
+                    });
+                }
+            });
+
+            layui.$("#add-menu-1").on("click",function(){
+
+                layer.open({
+                    type: 2, //Layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）,
+                    title: 'title here',   //标题
+                    area: ['650px', '600px'],   //宽高
+                    shade: 0.4,   //遮罩透明度
+                    content:"http://localhost:3040/index/system/menuSave",//支持获取DOM元素
+                    btn: ['确定', '取消'], //按钮组
+                    scrollbar: false ,//屏蔽浏览器滚动条
+                    success:function(layero,index){
+                        // 获取子页面的iframe
+                        let iframe = window['layui-layer-iframe' + index];
+                        // 向子页面的全局函数child传参
+                        iframe.init(null,1);
+
+                    },
+                    yes: function(index,layero){//layer.msg('yes');    //点击确定回调
+                        let iframeWin = window[layero.find('iframe')[0]['name']];//得到iframe页的窗口对象，执行iframe页的方法：
+                        let sId = iframeWin.document.getElementById("id").value;
+                        let sName = iframeWin.document.getElementById("name").value;
+                        let sSort = iframeWin.document.getElementById("sort").value;
+                        let sParentId = iframeWin.document.getElementById("parentId").value;
+                        let sUrl = iframeWin.document.getElementById("url").value;
+                        let sType = iframeWin.document.getElementById("type").value;
+                        let sRoute = iframeWin.document.getElementById("route").value;
+                        let sBelongType = iframeWin.document.getElementById("belongTo").value;
+                        console.log(sBelongType);
+                        let data = {
+                            "id":sId,
+                            "name":sName,
+                            "parentId":sParentId,
+                            "href":sUrl,
+                            "isShow": 0,
+                            "route": sRoute,
+                            "sort": sSort,
+                            "target": sType,
+                            "belongType":sBelongType
+                        };
+                        layui.$.ajax({
+                            url:"http://localhost:3040/system/menu/save",
+                            data:JSON.stringify(data),
+                            type:"POST",
+                            async:false,
+                            headers:{'Accept':'application/json','token':token},
+                            dataType:"JSON",
+                            contentType:"application/json;charset=UTF-8",
+                            success:function(data){
+                                let code = data.code;
+                                if(code == 200){
+                                    //执行重载
+                                    //table.reload('roleTable', {});
+                                    table.reload("reload1",function(){
+                                        page: {
+                                            curr:1 //重新从第 1 页开始
+                                        }
+                                    });
+                                    layer.close(index);
+                                }else{
+                                    layer.msg(data.msg);
+                                }
+                            },
+                            error:function(data){
+                                layui.$.alert('发生未知错误',data.msg);
+                            }
+                        });
+                    }, btn2: function(){//layer.alert('aaa',{title:'msg title'});  ////点击取消回调
+                        //layer.msg('bbb');//layer.closeAll();
+                    }
+                });
+
+            });
+            /**first**/
+
+
+
+            /**second**/
+            table.render({
+                elem: '#second-table'
+                ,method:"POST"
+                ,toolbar: true
+                ,url: 'http://localhost:3040/system/menu/list' //数据接口
+                ,page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                    layout: ['limit','limits', 'count', 'prev','page','next', 'first','last','skip'] //自定义分页布局
+                    ,limit:10
+                    ,limits:[5,10]
+                    ,groups: 5 //只显示 5 个连续页码
+                }
+                ,where:{
+                    type:2
+                }
+                ,request:{
+                    pageName:"pageCurrent",
+                    limitName:"pageSize",
+                }
+                ,contentType:"application/json;charset=UTF-8"
+                ,response: {
+                    statusCode: 200 //重新规定成功的状态码为 200，table 组件默认为 0
+                }
+                ,headers: {token:token}
+                ,cols: [
+                    [
+                        {field: 'id', title: 'ID', sort: true, fixed: 'left',align: 'center'}
+                        ,{field: 'parentId', title: '上级id',align: 'center'}
+                        ,{field: 'name', title: '名称',  sort: true,align: 'center'}
+                        ,{field: 'sort', title: '排序',align: 'center'}
+                        ,{field: 'href', title: '连接地址',align: 'center'}
+                        ,{field: 'target', title: '方式', sort: true,align: 'center'}
+                        ,{field: 'route', title: '路由', sort: true,align: 'center'}
+                        ,{field: 'createDate', title: '创建时间', sort: true,align: 'center'}
+                        ,{field: 'belongType', title: '归属', sort: true,align: 'center'}
+                        ,{field: 'parentName', title: '上级菜单', sort: true,align: 'center'}
+                        ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+                    ]
+                ]
+                ,id: 'reload2'
+                ,parseData:function(data){
+                    return {
+                        "code": data.code, //解析接口状态
+                        "msg": data.msg, //解析提示文本
+                        "count": data.data.total, //解析数据长度
+                        "data": data.data.records //解析数据列表
+                    };
+                }
+            });
+
+
+            let active1 = {
+                reload: function(){
+                    let demoReload = $('#demoReload2');
+                    //执行重载
+                    table.reload('reload2', {
+                        page: {
+                            curr: 1 //重新从第 1 页开始
+                        }
+                        ,where: {
+                            keyword: demoReload.val()
+                        }
+                    }, 'data');
+                }
+            };
+
+            $('#btn-reload-2').on('click', function(){
+                let type = $(this).data('type');
+                active1[type] ? active1[type].call(this) : '';
+            });
+
+            //头工具栏事件
+            table.on('toolbar(test2)', function(obj){
+                console.log(obj);
+                var checkStatus = table.checkStatus(obj.config.id);
+                switch(obj.event){
+                    case 'getCheckData':
+                        var data = checkStatus.data;
+                        layer.alert(JSON.stringify(data));
+                        break;
+                    case 'getCheckLength':
+                        var data = checkStatus.data;
+                        layer.msg('选中了：'+ data.length + ' 个');
+                        break;
+                    case 'isAll':
+                        layer.msg(checkStatus.isAll ? '全选': '未全选');
+                        break;
+
+                    //自定义头工具栏右侧图标 - 提示
+                    case 'LAYTABLE_TIPS':
+                        layer.alert('这是工具栏右侧自定义的一个图标按钮');
+                        break;
+                };
+            });
+
+            //监听行工具事件
+            table.on('tool(test2)', function(obj){
+                var data = obj.data;
+                console.log(obj)
+                if(obj.event === 'del'){
+                    layer.confirm('真的删除行么', function(index){
+                        obj.del();
+                        layer.close(index);
+                    });
+                } else if(obj.event === 'edit'){
+                    layer.open({
+                        type: 2, //Layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）,
+                        title: 'title here',   //标题
+                        area: ['650px', '600px'],   //宽高
+                        shade: 0.4,   //遮罩透明度
+                        content:"http://localhost:3040/index/system/menuSave",//支持获取DOM元素
+                        btn: ['确定', '取消'], //按钮组
+                        scrollbar: false ,//屏蔽浏览器滚动条
+                        success:function(layero,index){
+                            // 获取子页面的iframe
+                            let iframe = window['layui-layer-iframe' + index];
+                            // 向子页面的全局函数child传参
+                            iframe.init(obj.data.id,2);
+
+                        },
+                        yes: function(index,layero){//layer.msg('yes');    //点击确定回调
+                            let iframeWin = window[layero.find('iframe')[0]['name']];//得到iframe页的窗口对象，执行iframe页的方法：
+                            let sId = iframeWin.document.getElementById("id").value;
+                            let sName = iframeWin.document.getElementById("name").value;
+                            let sSort = iframeWin.document.getElementById("sort").value;
+                            let sParentId = iframeWin.document.getElementById("parentId").value;
+                            let sUrl = iframeWin.document.getElementById("url").value;
+                            let sType = iframeWin.document.getElementById("type").value;
+                            let sRoute = iframeWin.document.getElementById("route").value;
+                            let sBelongType = iframeWin.document.getElementById("belongTo").value;
+
+
+                            let data = {
+                                "id":sId,
+                                "name":sName,
+                                "parentId":sParentId,
+                                "href":sUrl,
+                                "isShow": 0,
+                                "route": sRoute,
+                                "sort": sSort,
+                                "target": sType,
+                                "belongType":sBelongType
+                            };
+                            layui.$.ajax({
+                                url:"http://localhost:3040/system/menu/save",
+                                data:JSON.stringify(data),
+                                type:"POST",
+                                async:false,
+                                headers:{'Accept':'application/json','token':token},
+                                dataType:"JSON",
+                                contentType:"application/json;charset=UTF-8",
+                                success:function(data){
+                                    let code = data.code;
+                                    if(code == 200){
+                                        //执行重载
+                                        //table.reload('roleTable', {});
+                                        table.reload("reload2",function(){
+                                            page: {
+                                                curr:1 //重新从第 1 页开始
+                                            }
+                                        });
+                                        layer.close(index);
+                                    }else{
+                                        layer.msg(data.msg);
+                                    }
+                                },
+                                error:function(data){
+                                    layui.$.alert('发生未知错误',data.msg);
+                                }
+                            });
+                        }, btn2: function(){//layer.alert('aaa',{title:'msg title'});  ////点击取消回调
+                            //layer.msg('bbb');//layer.closeAll();
+                        }
+                    });
+                }
+            });
+
+            layui.$("#add-menu-2").on("click",function(){
+
+                layer.open({
+                    type: 2, //Layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）,
+                    title: 'title here',   //标题
+                    area: ['650px', '600px'],   //宽高
+                    shade: 0.4,   //遮罩透明度
+                    content:"http://localhost:3040/index/system/menuSave",//支持获取DOM元素
+                    btn: ['确定', '取消'], //按钮组
+                    scrollbar: false ,//屏蔽浏览器滚动条
+                    success:function(layero,index){
+                        // 获取子页面的iframe
+                        let iframe = window['layui-layer-iframe' + index];
+                        // 向子页面的全局函数child传参
+                        iframe.init(null,2);
+
+                    },
+                    yes: function(index,layero){//layer.msg('yes');    //点击确定回调
+                        let iframeWin = window[layero.find('iframe')[0]['name']];//得到iframe页的窗口对象，执行iframe页的方法：
+                        let sId = iframeWin.document.getElementById("id").value;
+                        let sName = iframeWin.document.getElementById("name").value;
+                        let sSort = iframeWin.document.getElementById("sort").value;
+                        let sParentId = iframeWin.document.getElementById("parentId").value;
+                        let sUrl = iframeWin.document.getElementById("url").value;
+                        let sType = iframeWin.document.getElementById("type").value;
+                        let sRoute = iframeWin.document.getElementById("route").value;
+                        let sBelongType = iframeWin.document.getElementById("belongTo").value;
+                        let data = {
+                            "id":sId,
+                            "name":sName,
+                            "parentId":sParentId,
+                            "href":sUrl,
+                            "isShow": 0,
+                            "route": sRoute,
+                            "sort": sSort,
+                            "target": sType,
+                            "belongType":sBelongType
+                        };
+                        layui.$.ajax({
+                            url:"http://localhost:3040/system/menu/save",
+                            data:JSON.stringify(data),
+                            type:"POST",
+                            async:false,
+                            headers:{'Accept':'application/json','token':token},
+                            dataType:"JSON",
+                            contentType:"application/json;charset=UTF-8",
+                            success:function(data){
+                                let code = data.code;
+                                if(code == 200){
+                                    //执行重载
+                                    //table.reload('roleTable', {});
+                                    table.reload("reload2",function(){
+                                        page: {
+                                            curr:1 //重新从第 1 页开始
+                                        }
+                                    });
+                                    layer.close(index);
+                                }else{
+                                    layer.msg(data.msg);
+                                }
+                            },
+                            error:function(data){
+                                layui.$.alert('发生未知错误',data.msg);
+                            }
+                        });
+                    }, btn2: function(){//layer.alert('aaa',{title:'msg title'});  ////点击取消回调
+                        //layer.msg('bbb');//layer.closeAll();
+                    }
+                });
+
+            });
+
+            /***second**/
+
+            /**third**/
+            table.render({
+                elem: '#third-table'
+                ,method:"POST"
+                ,toolbar: true
+                ,url: 'http://localhost:3040/system/menu/list' //数据接口
+                ,page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                    layout: ['limit','limits', 'count', 'prev','page','next', 'first','last','skip'] //自定义分页布局
+                    ,limit:10
+                    ,limits:[5,10]
+                    ,groups: 5 //只显示 5 个连续页码
+                }
+                ,where:{
+                    type:3
+                }
+                ,request:{
+                    pageName:"pageCurrent",
+                    limitName:"pageSize",
+                }
+                ,contentType:"application/json;charset=UTF-8"
+                ,response: {
+                    statusCode: 200 //重新规定成功的状态码为 200，table 组件默认为 0
+                }
+                ,headers: {token:token}
+                ,cols: [
+                    [
+                        {field: 'id', title: 'ID', sort: true, fixed: 'left',align: 'center'}
+                        ,{field: 'parentId', title: '上级id',align: 'center'}
+                        ,{field: 'name', title: '名称',  sort: true,align: 'center'}
+                        ,{field: 'sort', title: '排序',align: 'center'}
+                        ,{field: 'href', title: '连接地址',align: 'center'}
+                        ,{field: 'target', title: '方式', sort: true,align: 'center'}
+                        ,{field: 'route', title: '路由', sort: true,align: 'center'}
+                        ,{field: 'createDate', title: '创建时间', sort: true,align: 'center'}
+                        ,{field: 'belongType', title: '归属', sort: true,align: 'center'}
+                        ,{field: 'parentName', title: '上级菜单', sort: true,align: 'center'}
+                        ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+                    ]
+                ]
+                ,id: 'reload3'
+                ,parseData:function(data){
+                    return {
+                        "code": data.code, //解析接口状态
+                        "msg": data.msg, //解析提示文本
+                        "count": data.data.total, //解析数据长度
+                        "data": data.data.records //解析数据列表
+                    };
+                }
+            });
+            let active3 = {
+                reload: function(){
+                    let demoReload = $('#demoReload3');
+                    //执行重载
+                    table.reload('reload3', {
+                        page: {
+                            curr: 1 //重新从第 1 页开始
+                        }
+                        ,where: {
+                            keyword: demoReload.val()
+                        }
+                    }, 'data');
+                }
+            };
+            $('#btn-reload-3').on('click', function(){
+                let type = $(this).data('type');
+                active3[type] ? active3[type].call(this) : '';
+            });
+
+            //头工具栏事件
+            table.on('toolbar(test3)', function(obj){
+                console.log(obj);
+                var checkStatus = table.checkStatus(obj.config.id);
+                switch(obj.event){
+                    case 'getCheckData':
+                        var data = checkStatus.data;
+                        layer.alert(JSON.stringify(data));
+                        break;
+                    case 'getCheckLength':
+                        var data = checkStatus.data;
+                        layer.msg('选中了：'+ data.length + ' 个');
+                        break;
+                    case 'isAll':
+                        layer.msg(checkStatus.isAll ? '全选': '未全选');
+                        break;
+
+                    //自定义头工具栏右侧图标 - 提示
+                    case 'LAYTABLE_TIPS':
+                        layer.alert('这是工具栏右侧自定义的一个图标按钮');
+                        break;
+                };
+            });
+
+            //监听行工具事件
+            table.on('tool(test3)', function(obj){
+                var data = obj.data;
+                console.log(obj)
+                if(obj.event === 'del'){
+                    layer.confirm('真的删除行么', function(index){
+                        obj.del();
+                        layer.close(index);
+                    });
+                } else if(obj.event === 'edit'){
+                    layer.open({
+                        type: 2, //Layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）,
+                        title: 'title here',   //标题
+                        area: ['650px', '600px'],   //宽高
+                        shade: 0.4,   //遮罩透明度
+                        content:"http://localhost:3040/index/system/menuSave",//支持获取DOM元素
+                        btn: ['确定', '取消'], //按钮组
+                        scrollbar: false ,//屏蔽浏览器滚动条
+                        success:function(layero,index){
+                            // 获取子页面的iframe
+                            let iframe = window['layui-layer-iframe' + index];
+                            // 向子页面的全局函数child传参
+                            iframe.init(obj.data.id,3);
+
+                        },
+                        yes: function(index,layero){//layer.msg('yes');    //点击确定回调
+                            let iframeWin = window[layero.find('iframe')[0]['name']];//得到iframe页的窗口对象，执行iframe页的方法：
+                            let sId = iframeWin.document.getElementById("id").value;
+                            let sName = iframeWin.document.getElementById("name").value;
+                            let sSort = iframeWin.document.getElementById("sort").value;
+                            let sParentId = iframeWin.document.getElementById("parentId").value;
+                            let sUrl = iframeWin.document.getElementById("url").value;
+                            let sType = iframeWin.document.getElementById("type").value;
+                            let sRoute = iframeWin.document.getElementById("route").value;
+                            let sBelongType = iframeWin.document.getElementById("belongTo").value;
+
+
+                            let data = {
+                                "id":sId,
+                                "name":sName,
+                                "parentId":sParentId,
+                                "href":sUrl,
+                                "isShow": 0,
+                                "route": sRoute,
+                                "sort": sSort,
+                                "target": sType,
+                                "belongType":sBelongType
+                            };
+                            layui.$.ajax({
+                                url:"http://localhost:3040/system/menu/save",
+                                data:JSON.stringify(data),
+                                type:"POST",
+                                async:false,
+                                headers:{'Accept':'application/json','token':token},
+                                dataType:"JSON",
+                                contentType:"application/json;charset=UTF-8",
+                                success:function(data){
+                                    let code = data.code;
+                                    if(code == 200){
+                                        //执行重载
+                                        //table.reload('roleTable', {});
+                                        table.reload("reload3",function(){
+                                            page: {
+                                                curr:1 //重新从第 1 页开始
+                                            }
+                                        });
+                                        layer.close(index);
+                                    }else{
+                                        layer.msg(data.msg);
+                                    }
+                                },
+                                error:function(data){
+                                    layui.$.alert('发生未知错误',data.msg);
+                                }
+                            });
+                        }, btn2: function(){//layer.alert('aaa',{title:'msg title'});  ////点击取消回调
+                            //layer.msg('bbb');//layer.closeAll();
+                        }
+                    });                }
+            });
+
+            layui.$("#add-menu-3").on("click",function(){
+
+                layer.open({
+                    type: 2, //Layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）,
+                    title: 'title here',   //标题
+                    area: ['650px', '600px'],   //宽高
+                    shade: 0.4,   //遮罩透明度
+                    content:"http://localhost:3040/index/system/menuSave",//支持获取DOM元素
+                    btn: ['确定', '取消'], //按钮组
+                    scrollbar: false ,//屏蔽浏览器滚动条
+                    success:function(layero,index){
+                        // 获取子页面的iframe
+                        let iframe = window['layui-layer-iframe' + index];
+                        // 向子页面的全局函数child传参
+                        iframe.init(null,3);
+
+                    },
+                    yes: function(index,layero){//layer.msg('yes');    //点击确定回调
+                        let iframeWin = window[layero.find('iframe')[0]['name']];//得到iframe页的窗口对象，执行iframe页的方法：
+                        let sId = iframeWin.document.getElementById("id").value;
+                        let sName = iframeWin.document.getElementById("name").value;
+                        let sSort = iframeWin.document.getElementById("sort").value;
+                        let sParentId = iframeWin.document.getElementById("parentId").value;
+                        let sUrl = iframeWin.document.getElementById("url").value;
+                        let sType = iframeWin.document.getElementById("type").value;
+                        let sRoute = iframeWin.document.getElementById("route").value;
+                        let sBelongType = iframeWin.document.getElementById("belongTo").value;
+                        let data = {
+                            "id":sId,
+                            "name":sName,
+                            "parentId":sParentId,
+                            "href":sUrl,
+                            "isShow": 0,
+                            "route": sRoute,
+                            "sort": sSort,
+                            "target": sType,
+                            "belongType":sBelongType
+                        };
+                        layui.$.ajax({
+                            url:"http://localhost:3040/system/menu/save",
+                            data:JSON.stringify(data),
+                            type:"POST",
+                            async:false,
+                            headers:{'Accept':'application/json','token':token},
+                            dataType:"JSON",
+                            contentType:"application/json;charset=UTF-8",
+                            success:function(data){
+                                let code = data.code;
+                                if(code == 200){
+                                    //执行重载
+                                    //table.reload('roleTable', {});
+                                    table.reload("reload3",function(){
+                                        page: {
+                                            curr:1 //重新从第 1 页开始
+                                        }
+                                    });
+                                    layer.close(index);
+                                }else{
+                                    layer.msg(data.msg);
+                                }
+                            },
+                            error:function(data){
+                                layui.$.alert('发生未知错误',data.msg);
+                            }
+                        });
+                    }, btn2: function(){//layer.alert('aaa',{title:'msg title'});  ////点击取消回调
+                        //layer.msg('bbb');//layer.closeAll();
+                    }
+                });
+
+            });
+            /***second**/
+
+        })
+    });
+</script>
+
+</body>
+</html>
