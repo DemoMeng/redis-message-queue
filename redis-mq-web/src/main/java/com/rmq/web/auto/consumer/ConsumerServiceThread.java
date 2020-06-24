@@ -27,18 +27,20 @@ public class ConsumerServiceThread extends Thread {
 		int count = 0;
 		String lockKey = RedisConstants.getKey(RedisConstants.REDIS_CONSUMER_THREAD_LOCK_PREFIX, consumerService.getDefaultConsumer().getTopicName(), consumerService.getDefaultConsumer().getGroupName());
 		String heartKey = RedisConstants.getKey(RedisConstants.REDIS_CONSUMER_HEART_PREFIX, consumerService.getDefaultConsumer().getTopicName(), consumerService.getDefaultConsumer().getGroupName());
-		redisService.del(lockKey);//重启时删除key
+		/**重启时删除key*/
+		redisService.del(lockKey);
 		while(true) {
 			try {
-				if(redisService.exists(lockKey)) {//通过redis缓存锁安全关闭线程，保证队列的安全性和完整性
+				/**通过redis缓存锁安全关闭线程，保证队列的安全性和完整性*/
+				if(redisService.exists(lockKey)) {
 					log.info("消费者线程{}安全关闭...",this.getName());
 					break;
 				}else {
-					// 加入心跳，监听线程	
+					/**加入心跳，监听线程*/
 					redisService.zadd(heartKey, System.currentTimeMillis(), this.getName());
 					ConsumeMessageResult result = consumerService.dealMessage();
-					// 消费消息结果处理
-					if(!result.isSuccess()) {//消费成功、失败、没有更多消息
+					/**消费消息结果处理 消费成功、失败、没有更多消息*/
+					if(!result.isSuccess()) {
 						sleep(3000);
 					}
 					count++;

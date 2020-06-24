@@ -1,7 +1,7 @@
 package com.rmq.web.auto.consumer;
 
 
-import com.rmq.web.auto.MessageLinser;
+import com.rmq.web.auto.MessageListener;
 import com.rmq.web.redis.config.RedisService;
 import com.rmq.web.redis.factory.RedisFactory;
 import org.slf4j.Logger;
@@ -15,20 +15,19 @@ import org.slf4j.LoggerFactory;
 public class DefaultConsumer {
 	private final static Logger log = LoggerFactory.getLogger(ConsumerServiceThread.class);
 
-	//默认启动的处理message线程数ConsumerServiceImpl
+	/**默认启动的处理message线程数ConsumerServiceImpl*/
 	private int threadNum = 1;
 	
-	//消息的topic
+	/**消息的topic*/
 	private String topicName;
-	
-	//消费者的group
+	/**消费者的group*/
 	private String groupName;
-	
+
 	private ConsumerServiceImpl consumerService;
 	
 	private RedisService redisService;
 	
-	private MessageLinser messageLinser;
+	private MessageListener messageListener;
 	
 	public DefaultConsumer(String topicName, String groupName, int threadNum) {
 		this.topicName = topicName;
@@ -45,7 +44,7 @@ public class DefaultConsumer {
 		consumerService = new ConsumerServiceImpl(this, redisService);
 	}
 	
-	//启动。保证消息不重复，不丢失，但是不保存历史消息
+	/**启动。保证消息不重复，不丢失，但是不保存历史消息*/
 	public void start() {
 		for(int i=0;i<this.threadNum;i++) {
 			ConsumerServiceThread thread = new ConsumerServiceThread();
@@ -73,11 +72,11 @@ public class DefaultConsumer {
 		this.groupName = groupName;
 	}
 	
-	public void setMessageLinser(MessageLinser messageLinser) {
-		this.messageLinser = messageLinser;
+	public void setMessageListener(MessageListener messageListener) {
+		this.messageListener = messageListener;
 	}
 	
-	public MessageLinser getMessageLinser() {
-		return this.messageLinser;
+	public MessageListener getMessageListener() {
+		return this.messageListener;
 	}
 }

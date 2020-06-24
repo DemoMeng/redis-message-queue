@@ -3,6 +3,8 @@ package com.rmq.web.controller;
 import com.rmq.web.common.HttpConstants;
 import com.rmq.web.common.MsgListStatus;
 import com.rmq.web.common.ServiceResult;
+import com.rmq.web.model.vo.TopicsVO;
+import com.rmq.web.service.DataRegServiceImpl;
 import com.rmq.web.service.DataServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -26,6 +28,26 @@ public class WebController {
 
     @Autowired
     private DataServiceImpl dataService;
+    @Autowired
+    private DataRegServiceImpl dataRegService;
+
+
+    @GetMapping(value = "/topics")
+    @ApiOperation(value = "获取所有注册的topics",notes = "获取所有注册的topics")
+    public ServiceResult topics() {
+        ServiceResult result = null;
+        List<TopicsVO> data = dataService.getAllTopic();
+        if(data != null) {
+            result = new ServiceResult(HttpConstants.RESUTL_OK, "");
+            result.setData(data);
+        }else {
+            result = new ServiceResult(HttpConstants.RESUTL_FAIL, HttpConstants.CODE_EXCEPTION, true);
+        }
+        return result;
+    }
+
+
+
 
     @GetMapping(value = "/getAllTopics")
     @ApiOperation(value = "获取所有注册的topics",notes = "获取所有注册的topics")
@@ -119,6 +141,37 @@ public class WebController {
         int result = dataService.changeConsumerStatus(topic, group, status);
         if(result == 1) {
             serviceResult = new ServiceResult(HttpConstants.RESUTL_OK, "操作成功");
+        }else {
+            serviceResult = new ServiceResult(HttpConstants.RESUTL_FAIL, HttpConstants.CODE_EXCEPTION, true);
+        }
+        return serviceResult;
+    }
+
+
+    @GetMapping(value = "/regTopic/{topic}")
+    @ApiOperation(value = "注册topic",notes = "注册topic")
+    public ServiceResult regTopic(@PathVariable("topic") String topic) {
+        ServiceResult serviceResult = null;
+        int result = dataRegService.regTopic(topic);
+        if(result == 1) {
+            serviceResult = new ServiceResult(HttpConstants.RESUTL_OK, "注册成功");
+        }else if(result == 2){
+            serviceResult = new ServiceResult(HttpConstants.RESUTL_FAIL, "注册失败，topic已存在");
+        }else {
+            serviceResult = new ServiceResult(HttpConstants.RESUTL_FAIL, HttpConstants.CODE_EXCEPTION, true);
+        }
+        return serviceResult;
+    }
+
+    @GetMapping(value = "/regGroup/{topic}/{group}")
+    @ApiOperation(value = "注册消费者group",notes = "注册消费者group")
+    public ServiceResult regGroup(@PathVariable("topic") String topic, @PathVariable("group") String group) {
+        ServiceResult serviceResult = null;
+        int result = dataRegService.regGroup(topic, group);
+        if(result == 1) {
+            serviceResult = new ServiceResult(HttpConstants.RESUTL_OK, "注册成功");
+        }else if(result == 2){
+            serviceResult = new ServiceResult(HttpConstants.RESUTL_FAIL, "注册失败，topic不存在");
         }else {
             serviceResult = new ServiceResult(HttpConstants.RESUTL_FAIL, HttpConstants.CODE_EXCEPTION, true);
         }

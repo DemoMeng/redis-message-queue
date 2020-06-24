@@ -15,6 +15,12 @@ import springfox.documentation.annotations.ApiIgnore;
 public class IndexController {
 
 
+    @RequestMapping(value = "/topic")
+    public String topic(){
+        return "topic";
+    }
+
+
     @RequestMapping(value = "/")
     public String index(){
         return "index";

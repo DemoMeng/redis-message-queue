@@ -2,35 +2,127 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>角色管理</title>
+    <title>消息管理功能-topic</title>
     <link th:href="@{/layui/css/layui.css}" rel="stylesheet" />
 </head>
 <body class="layui-layout-body">
-<div class="layui-btn-container">
-    <button type="button" class="layui-btn layui-btn-sm" id="add-role">新增</button>
-</div>
-<table id="log-table" lay-filter="test-log"></table>
 
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">RedisMQ</div>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">蒙大拿
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">基本资料</a></dd>
+                    <dd><a href="">安全设置</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="">退了</a></li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">Topics</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" id="topic-list-a">列表</a></dd>
+                        <dd><a href="javascript:;">注册</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;">Groups</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;">列表</a></dd>
+                        <dd><a href="javascript:;">注册</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;" id="content">
+            <strong>Welcome to RedisMQ admin!</strong>
+        </div>
+    </div>
+
+    <div class="layui-footer">
+        by : 蒙大拿
+    </div>
+</div>
 <script th:src="@{/layui/layui.js}"></script>
-<script th:src="@{/js/utils.js}"></script>
-<script th:src="@{/js/token_filter.js}"></script>
-<script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-</script>
 <script>
 
-    layui.use('table', function() {
+
+    function check(name){
+        console.log(name);
+        console.log(name.prev());
+    }
+
+    layui.use(['table','element'], function() {
         let $ = layui.$;
+        let element = layui.element;
         $(function(){
-            ct();
-            let token = layui.data("tokens").token;
+            $("#topic-list-a").on("click",function(){
+
+                layui.$.ajax({
+                    url:"http://localhost:4000/web/topics",
+                    //data:JSON.stringify(data),
+                    type:"GET",
+                    async:false,
+                    headers:{'Accept':'application/json'},
+                    dataType:"JSON",
+                    contentType:"application/json;charset=UTF-8",
+                    success:function(data){
+                        let resultCode = data.resultCode;
+                        if(resultCode == "SUCCESS"){
+                            let result = data.data;
+                            let content = "";
+                            content = "<button id='addTopic' type='button' class='layui-btn layui-btn-radius'>默认按钮</button>";
+                            content += "<table style='text-align: center' class='layui-table' lay-even='' lay-skin='row'>";
+                            content += "<thead>"
+                            content += "<tr>"
+                            content += "<th style='text-align: center'>topic名称</th>"
+                            content += "<th style='text-align: center'>topic下的topicGroup</th>"
+                            content += "</tr>"
+                            content += "</thead>"
+                            content += "<tbody>"
+                            for(let i=0;i<result.length;i++){
+                                content += "<tr><td>"+result[i].topicName+"</td>";
+                                content += "<td>"+result[i].groups+"</td></tr>";
+                            }
+                            content += "</tbody>";
+                            content += "</table>";
+                            console.log(data.data);
+                            $("#content").html(content);
+                        }
+                    },
+                    error:function(data){
+                        layui.$.alert('发生未知错误',data.msg);
+                    }
+                });
+            });
+
+
+
+            $("#addTopic").on("click",function(){
+
+            });
+
+            return false;
+
             let table = layui.table;
             //第一个实例
             table.render({
                 elem: '#log-table'
                 ,method:"POST"
-                ,url: 'http://localhost:3040/system/role/list' //数据接口
+                ,url: 'http://localhost:4000/web/getAllTopics' //数据接口
                 ,page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
                     layout: ['limit','limits', 'count', 'prev','page','next', 'first','last','skip'] //自定义分页布局
                     ,limit:20
@@ -46,20 +138,10 @@
                     statusCode: 200 //重新规定成功的状态码为 200，table 组件默认为 0
                 }
                 ,id:"roleTable"
-                ,headers: {token:token}
                 ,cols: [
                     [
                         {field: 'id', title: 'ID', sort: true, fixed: 'left'}
                         ,{field: 'createBy', title: '创建人id'}
-                        ,{field: 'createDate', title: '创建时间',  sort: true}
-                        ,{field: 'delFlag', title: '删除标识'}
-                        ,{field: 'name', title: '名称'}
-                        ,{field: 'remarks', title: '备注', sort: true}
-                        ,{field: 'roleType', title: '角色类型', sort: true}
-                        ,{field: 'updateBy', title: '更新操作人id', sort: true}
-                        ,{field: 'updateDate', title: '更新时间', sort: true}
-                        ,{field: 'useable', title: '启用状态', sort: true}
-                        ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
                     ]
                 ]
                 ,parseData:function(data){
@@ -67,7 +149,7 @@
                         "code": data.code, //解析接口状态
                         "msg": data.msg, //解析提示文本
                         "count": data.data.total, //解析数据长度
-                        "data": data.data.records //解析数据列表
+                        "data": data.data //解析数据列表
                     };
                 }
             });

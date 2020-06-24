@@ -28,10 +28,12 @@ public class ProducerServiceImpl{
 
 	public void sendMessage(String message) {
 		try {
-			// 已注册的topic，有分组的发送给分组，没有分组的发送给topic下所有的分组
-			if(StringUtils.isNotBlank(defaultProducer.getGroupName())) {//有分组的发送给分组
+			/**已注册的topic，有分组的发送给分组，没有分组的发送给topic下所有的分组*/
+			if(StringUtils.isNotBlank(defaultProducer.getGroupName())) {
+				/**有分组的发送给分组*/
 				redisService.rpush(RedisConstants.getKey(RedisConstants.REDIS_MESSAGE_PREFIX, defaultProducer.getTopicName(), defaultProducer.getGroupName()), message);
-			}else {//没有分组的发送给topic下所有的分组
+			}else {
+				/**没有分组的发送给topic下所有的分组*/
 				Set<String> groups = redisService.smembers(RedisConstants.getKey(RedisConstants.REDIS_TOPIC_GROUPS_PREFIX, defaultProducer.getTopicName()));
 				if(groups != null) {
 					for(String group : groups) {

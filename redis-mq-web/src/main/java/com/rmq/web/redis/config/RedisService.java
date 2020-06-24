@@ -9,7 +9,6 @@ import java.util.Set;
  */
 public interface RedisService {
 
-	/* kv */
 	void set(String key, String value);
 	
 	String get(String key);
@@ -18,7 +17,6 @@ public interface RedisService {
 	
 	boolean exists(String key);
 	
-	/* list */
 	long llen(String key);
 	
 	void rpush(String key, String value);
@@ -29,15 +27,11 @@ public interface RedisService {
 	
 	String lpop(String key);
 	
-	/* set */
-	
 	Set<String> smembers(String key);
 	
 	void sadd(String key, String value);
 	
 	boolean sismember(String key, String member);
-	
-	/* zset */
 	
 	void zadd(String key, double score, String member);
 	

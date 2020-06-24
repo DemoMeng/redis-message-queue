@@ -5,7 +5,7 @@ package com.rmq.web.auto;
  * @author xulz
  * @date 2019年1月22日上午11:30:28
  */
-public interface MessageLinser {
+public interface MessageListener {
 
 	/**
 	 * 处理消息

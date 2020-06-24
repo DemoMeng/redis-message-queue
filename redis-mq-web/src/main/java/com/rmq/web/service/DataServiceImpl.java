@@ -1,12 +1,14 @@
 package com.rmq.web.service;
 
 import com.rmq.web.common.MsgListStatus;
+import com.rmq.web.model.vo.TopicsVO;
 import com.rmq.web.redis.config.RedisService;
 import com.rmq.web.redis.constants.RedisConstants;
 import com.rmq.web.redis.factory.RedisFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,27 @@ import java.util.Set;
 @Service
 public class DataServiceImpl{
 	private static final Logger log = LoggerFactory.getLogger(DataServiceImpl.class);
+
+	private RedisService redisService = RedisFactory.getRedisService();
+
+	public List<TopicsVO> getAllTopic(){
+		List<TopicsVO> list = new ArrayList<>();
+		Set<String> sets = redisService.smembers(RedisConstants.REDIS_TOPIC);
+		for(String tName:sets){
+			Set<String> gSets = redisService.smembers(RedisConstants.getKey(RedisConstants.REDIS_TOPIC_GROUPS_PREFIX, tName));
+			StringBuffer sb = new StringBuffer();
+			for(String g:gSets){
+				sb.append(g);
+				sb.append(";");
+			}
+			TopicsVO vo = new TopicsVO()
+					.setTopicName(tName)
+					.setGroups(sb.toString());
+			list.add(vo);
+		}
+		return list;
+	}
+
 	
 	public Set<String> getAllTopics() {
 		Set<String> data = null;
@@ -108,10 +131,12 @@ public class DataServiceImpl{
 		try {
 			RedisService redisService = RedisFactory.getRedisService();
 			String key = RedisConstants.getKey(RedisConstants.REDIS_CONSUMER_THREAD_LOCK_PREFIX, topic, group);
-			if(status == 0) {//关闭
+			if(status == 0) {
+				//关闭
 				redisService.set(key, "1");
 				result = 1;
-			}else if(status == 1) {//开启
+			}else if(status == 1) {
+				//开启
 				redisService.del(key);
 				result = 1;
 			}

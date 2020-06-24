@@ -28,12 +28,12 @@ public class ConsumerServiceImpl{
 	public ConsumeMessageResult dealMessage() {
 		ConsumeMessageResult result = new ConsumeMessageResult();
 		try {
-			//redis队列中获取数据
+			/**redis队列中获取数据*/
 			String key = RedisConstants.getKey(RedisConstants.REDIS_MESSAGE_PREFIX, defaultConsumer.getTopicName(), defaultConsumer.getGroupName());
 			String message = redisService.lpop(key);
 			if(StringUtils.isNotBlank(message)) {
-				//处理消息
-				MessageStatus messageStatus = defaultConsumer.getMessageLinser().consumeMessage(message);
+				/**处理消息*/
+				MessageStatus messageStatus = defaultConsumer.getMessageListener().consumeMessage(message);
 				if(messageStatus != null) {
 					switch(messageStatus) {
 					case SUCCESS :
@@ -41,7 +41,7 @@ public class ConsumerServiceImpl{
 						break;
 					case ERROR :
 						result.setSuccess(false);
-						//处理失败放回队列中
+						/**处理失败放回队列中*/
 						redisService.rpush(key, message);
 						break;
 					default:

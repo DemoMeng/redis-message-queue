@@ -18,6 +18,8 @@ public class JedisClient {
 
 	private JedisPool pool;
 
+	private static Configuration config = null;
+
 	private static JedisClient jedisClinet = new JedisClient();
 
 	public static JedisClient getInstance() {
@@ -28,7 +30,7 @@ public class JedisClient {
 		init("redmq.properties");
 	}
 
-	private static Configuration config = null;
+
 
 	public void init(String file) {
 

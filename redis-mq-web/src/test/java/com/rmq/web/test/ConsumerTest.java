@@ -1,7 +1,7 @@
 package com.rmq.web.test;
 
 
-import com.rmq.web.auto.MessageLinser;
+import com.rmq.web.auto.MessageListener;
 import com.rmq.web.auto.MessageStatus;
 import com.rmq.web.auto.consumer.DefaultConsumer;
 
@@ -16,7 +16,7 @@ public class ConsumerTest {
 		String topicName = "testTopic";
 		String groupName = "testGroup";
 		DefaultConsumer defaultConsumer = new DefaultConsumer(topicName, groupName, 1);
-		defaultConsumer.setMessageLinser(new MessageLinser() {
+		defaultConsumer.setMessageListener(new MessageListener() {
 			@Override
 			public MessageStatus consumeMessage(String message) {
 				System.out.println(message);
