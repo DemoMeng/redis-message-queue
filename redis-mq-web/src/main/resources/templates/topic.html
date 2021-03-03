@@ -47,6 +47,7 @@
 
     <div class="layui-body">
         <!-- 内容主体区域 -->
+        <button id='addTopic' type='button' class='layui-btn layui-btn-radius'>默认按钮</button>
         <div style="padding: 15px;" id="content">
             <strong>Welcome to RedisMQ admin!</strong>
         </div>
@@ -58,19 +59,58 @@
 </div>
 <script th:src="@{/layui/layui.js}"></script>
 <script>
-
-
     function check(name){
         console.log(name);
         console.log(name.prev());
+    }
+
+
+    function init(){
+        layui.use(['table','element'], function() {
+            layui.$.ajax({
+                url: "http://localhost:4000/web/topics",
+                //data:JSON.stringify(data),
+                type: "GET",
+                async: false,
+                dataType: "JSON",
+                success: function (data) {
+                    console.log(data);
+                    let resultCode = data.resultCode;
+                    if (resultCode == "SUCCESS") {
+                        let result = data.data;
+                        let content = "";
+                        content += "<table style='text-align: center' class='layui-table' lay-even='' lay-skin='row'>";
+                        content += "<thead>"
+                        content += "<tr>"
+                        content += "<th style='text-align: center'>topic名称</th>"
+                        content += "<th style='text-align: center'>topic下的topicGroup</th>"
+                        content += "</tr>"
+                        content += "</thead>"
+                        content += "<tbody>"
+                        for (let i = 0; i < result.length; i++) {
+                            content += "<tr><td>" + result[i].topicName + "</td>";
+                            content += "<td>" + result[i].groups + "</td></tr>";
+                        }
+                        content += "</tbody>";
+                        content += "</table>";
+                        console.log(data.data);
+                        layui.$("#content").html(content);
+                    }
+                },
+                error: function (data) {
+                    layui.$.alert('发生未知错误', data.msg);
+                }
+            });
+        })
     }
 
     layui.use(['table','element'], function() {
         let $ = layui.$;
         let element = layui.element;
         $(function(){
+            init();
+            return null;
             $("#topic-list-a").on("click",function(){
-
                 layui.$.ajax({
                     url:"http://localhost:4000/web/topics",
                     //data:JSON.stringify(data),
@@ -84,7 +124,6 @@
                         if(resultCode == "SUCCESS"){
                             let result = data.data;
                             let content = "";
-                            content = "<button id='addTopic' type='button' class='layui-btn layui-btn-radius'>默认按钮</button>";
                             content += "<table style='text-align: center' class='layui-table' lay-even='' lay-skin='row'>";
                             content += "<thead>"
                             content += "<tr>"
@@ -111,7 +150,80 @@
 
 
 
-            $("#addTopic").on("click",function(){
+            layui.$("#addTopic").on("click",function(){
+
+                console.log("12312312");
+
+                layer.open({
+                    type: 2, //Layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）,
+                    title: 'title here',   //标题
+                    area: ['350px', '300px'],   //宽高
+                    shade: 0.4,   //遮罩透明度
+                    content:"http://localhost:4000/index/topic-save",//支持获取DOM元素
+                    btn: ['确定', '取消'], //按钮组
+                    scrollbar: false ,//屏蔽浏览器滚动条
+                    success:function(layero,index){
+                        // 获取子页面的iframe
+                        let iframe = window['layui-layer-iframe' + index];
+                        // 向子页面的全局函数child传参
+                        iframe.init(null,1);
+
+                    },
+                    yes: function(index,layero){//layer.msg('yes');    //点击确定回调
+                        let iframeWin = window[layero.find('iframe')[0]['name']];//得到iframe页的窗口对象，执行iframe页的方法：
+                        let sId = iframeWin.document.getElementById("id").value;
+                        let sName = iframeWin.document.getElementById("name").value;
+                        let sSort = iframeWin.document.getElementById("sort").value;
+                        let sParentId = iframeWin.document.getElementById("parentId").value;
+                        let sUrl = iframeWin.document.getElementById("url").value;
+                        let sType = iframeWin.document.getElementById("type").value;
+                        let sRoute = iframeWin.document.getElementById("route").value;
+                        let sBelongType = iframeWin.document.getElementById("belongTo").value;
+                        console.log(sBelongType);
+                        let data = {
+                            "id":sId,
+                            "name":sName,
+                            "parentId":sParentId,
+                            "href":sUrl,
+                            "isShow": 0,
+                            "route": sRoute,
+                            "sort": sSort,
+                            "target": sType,
+                            "belongType":sBelongType
+                        };
+                        layui.$.ajax({
+                            url:"http://localhost:3040/system/menu/save",
+                            data:JSON.stringify(data),
+                            type:"POST",
+                            async:false,
+                            headers:{'Accept':'application/json','token':token},
+                            dataType:"JSON",
+                            contentType:"application/json;charset=UTF-8",
+                            success:function(data){
+                                let code = data.code;
+                                if(code == 200){
+                                    //执行重载
+                                    //table.reload('roleTable', {});
+                                    table.reload("reload1",function(){
+                                        page: {
+                                            curr:1 //重新从第 1 页开始
+                                        }
+                                    });
+                                    layer.close(index);
+                                }else{
+                                    layer.msg(data.msg);
+                                }
+                            },
+                            error:function(data){
+                                layui.$.alert('发生未知错误',data.msg);
+                            }
+                        });
+                    }, btn2: function(){//layer.alert('aaa',{title:'msg title'});  ////点击取消回调
+                        //layer.msg('bbb');//layer.closeAll();
+                    }
+                });
+
+
 
             });
 

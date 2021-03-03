@@ -20,6 +20,11 @@ public class IndexController {
         return "topic";
     }
 
+    @RequestMapping(value = "/topic-save")
+    public String topicSave(){
+        return "topic-save";
+    }
+
 
     @RequestMapping(value = "/")
     public String index(){
